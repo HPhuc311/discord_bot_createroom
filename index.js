@@ -1,25 +1,31 @@
-const express = require('express');
+require("dotenv").config();
+
+const express = require("express");
+const {
+    Client,
+    GatewayIntentBits,
+    ChannelType,
+} = require("discord.js");
+
+// =============================
+// WEB SERVER CHO RENDER
+// =============================
 
 const app = express();
 
-app.get('/', (req, res) => {
-    res.send('Discord Bot đang hoạt động!');
+app.get("/", (req, res) => {
+    res.send("🤖 Discord Bot đang hoạt động!");
 });
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Web server đang chạy tại port ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🌐 Web server đang chạy tại port ${PORT}`);
 });
 
-const {
-    Client,
-    GatewayIntentBits,
-    ChannelType
-} = require("discord.js");
-
-require("dotenv").config();
-
+// =============================
+// DISCORD BOT
+// =============================
 
 const client = new Client({
     intents: [
@@ -28,20 +34,31 @@ const client = new Client({
     ]
 });
 
-
 const CREATE_ROOM_ID = process.env.CREATE_ROOM_ID;
 const CATEGORY_ID = process.env.CATEGORY_ID;
 
 
-client.once("ready", () => {
+// =============================
+// BOT READY
+// =============================
+
+client.once("clientReady", () => {
     console.log(`🤖 Bot online: ${client.user.tag}`);
 });
 
 
+// =============================
+// VOICE ROOM SYSTEM
+// =============================
+
 client.on("voiceStateUpdate", async (oldState, newState) => {
 
     try {
-        // người dùng vào kênh tạo phòng 
+
+        // =============================
+        // TẠO ROOM
+        // =============================
+
         if (
             newState.channelId === CREATE_ROOM_ID &&
             oldState.channelId !== CREATE_ROOM_ID
@@ -50,32 +67,24 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
             const member = newState.member;
             const guild = newState.guild;
 
-            // Tạo phòng mới
+            console.log(`🔄 Đang tạo phòng cho ${member.user.tag}`);
+
             const room = await guild.channels.create({
                 name: `📢 Room of ${member.user.username}`,
                 type: ChannelType.GuildVoice,
                 parent: CATEGORY_ID,
-
-                // Giới hạn mặc định
-                userLimit: 0,
-
-                permissionOverwrites: [
-                    {
-                        id: guild.roles.everyone.id,
-                        allow: ["ViewChannel", "Connect"]
-                    }
-                ]
+                userLimit: 0
             });
 
-            // Chuyển member vào phòng vừa tạo
             await member.voice.setChannel(room);
 
-            console.log(
-                `✅ Đã tạo phòng cho ${member.user.tag}`
-            );
+            console.log(`✅ Đã tạo phòng: ${room.name}`);
         }
 
-        // xoá phòng khi không có ai trong phòng
+
+        // =============================
+        // XÓA ROOM KHI TRỐNG
+        // =============================
 
         const oldChannel = oldState.channel;
 
@@ -88,14 +97,15 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
 
             await oldChannel.delete();
 
-            console.log(
-                `🗑️ Đã xóa phòng: ${oldChannel.name}`
-            );
+            console.log(`🗑️ Đã xóa phòng: ${oldChannel.name}`);
         }
 
     } catch (error) {
 
-        console.error("❌ Lỗi Voice System:", error);
+        console.error(
+            "❌ Lỗi Voice System:",
+            error
+        );
 
     }
 
@@ -103,7 +113,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
 
 
 // =============================
-// ĐĂNG NHẬP BOT
+// LOGIN BOT
 // =============================
 
 client.login(process.env.TOKEN);
