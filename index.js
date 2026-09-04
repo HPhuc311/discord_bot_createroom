@@ -38,7 +38,7 @@ client.on("voiceStateUpdate", async (oldState, newState) => {
 
             // Tạo phòng mới
             const room = await guild.channels.create({
-                name: `🔊 Phòng của ${member.user.username}`,
+                name: `Room of ${member.user.username}`,
                 type: ChannelType.GuildVoice,
                 parent: CATEGORY_ID,
 
